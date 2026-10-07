@@ -213,9 +213,13 @@ export function AppProvider({ children }) {
     setFilaments((prev) => [item, ...prev]);
     showToast(`Đã thêm cuộn nhựa: "${item.name}"`);
 
-    // Lưu lên Supabase nếu đã đăng nhập
+    // Lưu lên Supabase nếu đã đăng nhập và bảng tồn tại
     if (user && supabase) {
-      await supabase.from('filaments').insert([mapFilamentToDb(item, user.id)]);
+      try {
+        await supabase.from('filaments').insert([mapFilamentToDb(item, user.id)]);
+      } catch (err) {
+        console.warn('Lưu Supabase filaments tạm thời chưa khả dụng:', err);
+      }
     }
     return item;
   };
@@ -227,10 +231,14 @@ export function AppProvider({ children }) {
     showToast('Đã cập nhật thông tin cuộn nhựa');
 
     if (user && supabase) {
-      const current = filaments.find((f) => f.id === id);
-      if (current) {
-        const merged = { ...current, ...updates };
-        await supabase.from('filaments').update(mapFilamentToDb(merged, user.id)).eq('id', id);
+      try {
+        const current = filaments.find((f) => f.id === id);
+        if (current) {
+          const merged = { ...current, ...updates };
+          await supabase.from('filaments').update(mapFilamentToDb(merged, user.id)).eq('id', id);
+        }
+      } catch (err) {
+        console.warn('Cập nhật Supabase filaments tạm thời chưa khả dụng:', err);
       }
     }
   };

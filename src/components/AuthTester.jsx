@@ -14,6 +14,7 @@ import {
   Layers,
   ArrowRight,
   Sparkles,
+  Users,
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -22,33 +23,33 @@ export default function AuthTester({ onEnterApp }) {
   const { user, signIn, signUp, signOut } = useAuth();
 
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('123456');
 
-  // Status & Feedback
+  // Trạng thái xử lý & thông báo
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  // Supabase Live Ping & Test Data
+  // Ping kiểm tra kết nối & danh sách tài khoản
   const [pingStatus, setPingStatus] = useState('checking');
   const [pingDetails, setPingDetails] = useState('');
-  const [liveFilaments, setLiveFilaments] = useState([]);
-  const [loadingFilaments, setLoadingFilaments] = useState(false);
+  const [liveAccounts, setLiveAccounts] = useState([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
 
-  // 1. Kiểm tra kết nối Supabase
+  // 1. Kiểm tra kết nối tới bảng accounts
   const checkSupabasePing = async () => {
     setPingStatus('checking');
-    setPingDetails('Đang kiểm tra kết nối...');
+    setPingDetails('Đang kết nối tới Supabase...');
     const startTime = performance.now();
 
     try {
       if (!isSupabaseConfigured || !supabase) {
         setPingStatus('error');
-        setPingDetails('Chưa cấu hình URL hoặc API Key');
+        setPingDetails('Chưa cấu hình URL hoặc API Key trong file .env');
         return;
       }
 
-      const { data, error } = await supabase.from('filaments').select('id, name').limit(5);
+      const { data, error } = await supabase.from('accounts').select('username').limit(5);
 
       if (error) {
         setPingStatus('error');
@@ -56,7 +57,7 @@ export default function AuthTester({ onEnterApp }) {
       } else {
         const duration = Math.round(performance.now() - startTime);
         setPingStatus('connected');
-        setPingDetails(`Đã kết nối! Phản hồi: ${duration}ms • Bảng filaments: OK`);
+        setPingDetails(`Kết nối thành công! Phản hồi: ${duration}ms • Bảng accounts: SẴN SÀNG`);
       }
     } catch (err) {
       setPingStatus('error');
@@ -64,37 +65,32 @@ export default function AuthTester({ onEnterApp }) {
     }
   };
 
-  useEffect(() => {
-    checkSupabasePing();
-  }, []);
-
-  // 2. Tải danh sách cuộn nhựa của user
-  const fetchUserFilaments = async () => {
-    if (!user || !supabase) return;
-    setLoadingFilaments(true);
+  // 2. Tải danh sách tất cả tài khoản hiện có trên Supabase
+  const fetchAllAccounts = async () => {
+    if (!supabase) return;
+    setLoadingAccounts(true);
     try {
       const { data, error } = await supabase
-        .from('filaments')
-        .select('*')
+        .from('accounts')
+        .select('username, created_at')
         .order('created_at', { ascending: false });
 
       if (error) {
-        setAlert({ type: 'error', message: `Lỗi đọc dữ liệu: ${error.message}` });
+        setAlert({ type: 'error', message: `Lỗi đọc bảng accounts: ${error.message}` });
       } else {
-        setLiveFilaments(data || []);
+        setLiveAccounts(data || []);
       }
     } catch (err) {
       setAlert({ type: 'error', message: err.message });
     } finally {
-      setLoadingFilaments(false);
+      setLoadingAccounts(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchUserFilaments();
-    }
-  }, [user]);
+    checkSupabasePing();
+    fetchAllAccounts();
+  }, []);
 
   // 3. Xử lý Đăng Nhập
   const handleLogin = async (e) => {
@@ -103,41 +99,35 @@ export default function AuthTester({ onEnterApp }) {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      await signIn(username, password);
       setAlert({
         type: 'success',
-        message: '🎉 Đăng nhập thành công! Kết nối Cloud đã sẵn sàng.',
+        message: `🎉 ĐĂNG NHẬP THÀNH CÔNG TÀI KHOẢN "${username.trim().toLowerCase()}"!`,
       });
+      fetchAllAccounts();
     } catch (err) {
       setAlert({
         type: 'error',
-        message: err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại Email và Mật khẩu.',
+        message: err.message || 'Đăng nhập thất bại.',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // 4. Xử lý Đăng Ký
+  // 4. Xử lý Đăng Ký Tài Khoản Mới
   const handleRegister = async (e) => {
     e.preventDefault();
     setAlert(null);
     setLoading(true);
 
     try {
-      const data = await signUp(email, password);
-      if (data?.session) {
-        setAlert({
-          type: 'success',
-          message: '🎉 Đăng ký thành công và đã tự động đăng nhập!',
-        });
-      } else {
-        setAlert({
-          type: 'success',
-          message: '🎉 Tạo tài khoản thành công! Bây giờ bạn hãy bấm tab "Đăng Nhập" để vào ngay.',
-        });
-        setActiveTab('login');
-      }
+      await signUp(username, password);
+      setAlert({
+        type: 'success',
+        message: `🎉 TẠO TÀI KHOẢN THÀNH CÔNG VÀ ĐÃ ĐĂNG NHẬP: "${username.trim().toLowerCase()}"!`,
+      });
+      fetchAllAccounts();
     } catch (err) {
       setAlert({
         type: 'error',
@@ -148,54 +138,19 @@ export default function AuthTester({ onEnterApp }) {
     }
   };
 
-  // 5. Thêm bản ghi test trực tiếp lên Supabase
-  const handleCreateTestFilament = async () => {
-    if (!user || !supabase) return;
-    setLoading(true);
+  // 5. Xóa tài khoản test khỏi Supabase
+  const handleDeleteAccount = async (targetUsername) => {
+    if (!window.confirm(`Xác nhận xóa tài khoản "${targetUsername}" khỏi Supabase?`)) return;
     try {
-      const testItem = {
-        id: 'fil-test-' + Date.now(),
-        user_id: user.id,
-        name: `Cuộn Nhựa Test (${new Date().toLocaleTimeString('vi-VN')})`,
-        brand: 'Bambu Lab',
-        material: 'PLA',
-        color_name: 'Xanh Lá Neon',
-        color_hex: '#22c55e',
-        initial_weight: 1000,
-        remaining_weight: 850,
-        status: 'loaded',
-        slot: 'AMS Slot 1',
-        notes: 'Bản ghi thử nghiệm trực tiếp trên Supabase',
-        created_at: new Date().toISOString(),
-      };
-
-      const { error } = await supabase.from('filaments').insert([testItem]);
-
-      if (error) {
-        setAlert({ type: 'error', message: `Lỗi ghi Supabase: ${error.message}` });
-      } else {
-        setAlert({
-          type: 'success',
-          message: `✅ ĐÃ GHI THÀNH CÔNG VÀO SUPABASE! ID: ${testItem.id}`,
-        });
-        fetchUserFilaments();
-      }
-    } catch (err) {
-      setAlert({ type: 'error', message: err.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 6. Xóa bản ghi test
-  const handleDeleteFilament = async (id) => {
-    try {
-      const { error } = await supabase.from('filaments').delete().eq('id', id);
+      const { error } = await supabase.from('accounts').delete().eq('username', targetUsername);
       if (error) {
         setAlert({ type: 'error', message: `Lỗi xóa: ${error.message}` });
       } else {
-        setAlert({ type: 'success', message: 'Đã xóa bản ghi khỏi Supabase' });
-        fetchUserFilaments();
+        setAlert({ type: 'success', message: `Đã xóa tài khoản "${targetUsername}" khỏi Supabase!` });
+        if (user?.username === targetUsername) {
+          signOut();
+        }
+        fetchAllAccounts();
       }
     } catch (err) {
       setAlert({ type: 'error', message: err.message });
@@ -205,28 +160,28 @@ export default function AuthTester({ onEnterApp }) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 selection:bg-indigo-500 selection:text-white">
       <div className="w-full max-w-xl space-y-5">
-        {/* Tiêu đề ngắn gọn */}
+        {/* Tiêu đề */}
         <div className="text-center space-y-1.5">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            PrintFlow 3D Cloud
+            Kiểm Tra Chức Năng Đăng Nhập &amp; Đăng Ký
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Đăng Nhập Tài Khoản Kho Nhựa
+            Xác Thực Tài Khoản Supabase
           </h1>
           <p className="text-xs text-slate-400">
-            Dữ liệu đồng bộ trực tiếp lên Cloud Supabase cho bạn và người trong xưởng
+            Dữ liệu tài khoản lưu trữ trực tiếp trên bảng <code className="text-indigo-300 font-mono">accounts</code>
           </p>
         </div>
 
-        {/* Trạng thái Supabase */}
+        {/* Thẻ trạng thái kết nối Supabase */}
         <div className="bg-slate-900/90 rounded-xl p-3.5 border border-slate-800 shadow-lg flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
             <div
               className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                 pingStatus === 'connected'
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
               }`}
             >
               <Database className="w-4 h-4" />
@@ -234,15 +189,15 @@ export default function AuthTester({ onEnterApp }) {
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white">Máy Chủ Cloud:</span>
+                <span className="text-xs font-bold text-white">Kết Nối Supabase:</span>
                 <span
                   className={`text-[11px] font-bold px-2 py-0.2 rounded-full ${
                     pingStatus === 'connected'
                       ? 'bg-emerald-500/20 text-emerald-400'
-                      : 'bg-amber-500/20 text-amber-400'
+                      : 'bg-rose-500/20 text-rose-400'
                   }`}
                 >
-                  {pingStatus === 'connected' ? '● ĐÃ KẾT NỐI' : 'Đang kiểm tra...'}
+                  {pingStatus === 'connected' ? '● ĐÃ KẾT NỐI' : 'CHƯA KẾT NỐI'}
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 truncate mt-0.5">{pingDetails}</p>
@@ -250,7 +205,10 @@ export default function AuthTester({ onEnterApp }) {
           </div>
 
           <button
-            onClick={checkSupabasePing}
+            onClick={() => {
+              checkSupabasePing();
+              fetchAllAccounts();
+            }}
             className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors shrink-0"
             title="Kiểm tra lại kết nối"
           >
@@ -261,7 +219,7 @@ export default function AuthTester({ onEnterApp }) {
         {/* Thông báo Alert */}
         {alert && (
           <div
-            className={`p-3.5 rounded-xl border text-xs font-medium flex items-center gap-2.5 ${
+            className={`p-3.5 rounded-xl border text-xs font-medium flex items-center gap-2.5 animate-in fade-in duration-200 ${
               alert.type === 'success'
                 ? 'bg-emerald-950/80 border-emerald-500/40 text-emerald-300'
                 : 'bg-rose-950/80 border-rose-500/40 text-rose-300'
@@ -282,7 +240,7 @@ export default function AuthTester({ onEnterApp }) {
           </div>
         )}
 
-        {/* NẾU ĐÃ ĐĂNG NHẬP: Hiển thị bảng điều khiển & nút vào App */}
+        {/* NẾU ĐÃ ĐĂNG NHẬP: Hiển thị trạng thái thành công */}
         {user ? (
           <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
@@ -291,8 +249,8 @@ export default function AuthTester({ onEnterApp }) {
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-xs text-slate-400">Đã đăng nhập tài khoản:</div>
-                  <div className="text-sm font-bold text-white truncate">{user.email}</div>
+                  <div className="text-xs text-slate-400">Đang đăng nhập tài khoản:</div>
+                  <div className="text-base font-bold text-emerald-400 truncate">{user.username}</div>
                 </div>
               </div>
 
@@ -305,52 +263,74 @@ export default function AuthTester({ onEnterApp }) {
               </button>
             </div>
 
-            {/* Nút vào ứng dụng to, nổi bật */}
+            {/* Danh sách tài khoản đang có trên Supabase */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-300 flex items-center gap-1.5">
+                  <Users className="w-4 h-4 text-indigo-400" />
+                  Các Tài Khoản Đang Có Trên Supabase ({liveAccounts.length})
+                </span>
+                <button
+                  onClick={fetchAllAccounts}
+                  disabled={loadingAccounts}
+                  className="text-slate-400 hover:text-indigo-400 p-1"
+                  title="Tải lại danh sách"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingAccounts ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+
+              <div className="bg-slate-950 rounded-xl border border-slate-800 p-2 divide-y divide-slate-850 max-h-48 overflow-y-auto">
+                {liveAccounts.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-slate-500">Chưa có tài khoản nào</div>
+                ) : (
+                  liveAccounts.map((acc) => (
+                    <div
+                      key={acc.username}
+                      className="py-2 px-2.5 flex items-center justify-between text-xs hover:bg-slate-900/50 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span className="font-bold text-white">{acc.username}</span>
+                        {acc.username === user.username && (
+                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            Hiện tại
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          {new Date(acc.created_at).toLocaleTimeString('vi-VN')}
+                        </span>
+                        {acc.username !== 'admin' && (
+                          <button
+                            onClick={() => handleDeleteAccount(acc.username)}
+                            className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                            title="Xóa tài khoản này"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Nút vào ứng dụng */}
             <button
               onClick={onEnterApp}
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99]"
             >
               <Layers className="w-5 h-5" />
-              <span>VÀO GIAO DIỆN QUẢN LÝ PRINTFLOW ĐẦY ĐỦ</span>
+              <span>VÀO GIAO DIỆN QUẢN LÝ PRINTFLOW</span>
               <ArrowRight className="w-4 h-4" />
             </button>
-
-            {/* Test ghi dữ liệu Supabase */}
-            <div className="pt-2 border-t border-slate-800/80 space-y-2.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-300">
-                  Dữ liệu test trên Supabase ({liveFilaments.length} bản ghi):
-                </span>
-                <button
-                  onClick={handleCreateTestFilament}
-                  disabled={loading}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600/90 hover:bg-emerald-500 text-white text-[11px] font-bold transition-all disabled:opacity-50"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Ghi Thử 1 Cuộn Nhựa</span>
-                </button>
-              </div>
-
-              {liveFilaments.length > 0 && (
-                <div className="bg-slate-950 rounded-lg p-2.5 max-h-36 overflow-y-auto divide-y divide-slate-850 text-xs">
-                  {liveFilaments.map((f) => (
-                    <div key={f.id} className="py-1.5 flex items-center justify-between gap-2">
-                      <span className="text-white font-medium truncate">{f.name}</span>
-                      <button
-                        onClick={() => handleDeleteFilament(f.id)}
-                        className="text-slate-500 hover:text-rose-400 p-0.5"
-                        title="Xóa"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         ) : (
-          /* NẾU CHƯA ĐĂNG NHẬP: Form đăng nhập/đăng ký siêu gọn */
+          /* NẾU CHƯA ĐĂNG NHẬP: Form đăng nhập / đăng ký */
           <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 sm:p-7 shadow-2xl space-y-5">
             {/* Tabs */}
             <div className="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
@@ -375,6 +355,8 @@ export default function AuthTester({ onEnterApp }) {
                 onClick={() => {
                   setActiveTab('register');
                   setAlert(null);
+                  setUsername('');
+                  setPassword('');
                 }}
                 className={`py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                   activeTab === 'register'
@@ -390,15 +372,15 @@ export default function AuthTester({ onEnterApp }) {
             <form onSubmit={activeTab === 'login' ? handleLogin : handleRegister} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Tên Tài Khoản / Email
+                  Tên Tài Khoản
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     placeholder="ví dụ: admin hoặc tên của bạn"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
@@ -414,14 +396,19 @@ export default function AuthTester({ onEnterApp }) {
                   <input
                     type="password"
                     required
-                    minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
+                    placeholder="Nhập mật khẩu"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                 </div>
               </div>
+
+              {activeTab === 'login' && (
+                <div className="p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-[11px] text-indigo-300">
+                  💡 Tài khoản mẫu có sẵn: Tên: <strong className="text-white">admin</strong> | Mật khẩu: <strong className="text-white">123456</strong>
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -429,7 +416,7 @@ export default function AuthTester({ onEnterApp }) {
                 className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-1"
               >
                 {loading ? (
-                  <span>Đang xử lý...</span>
+                  <span>Đang xử lý trên Supabase...</span>
                 ) : activeTab === 'login' ? (
                   <>
                     <UserCheck className="w-4 h-4" />
@@ -438,21 +425,18 @@ export default function AuthTester({ onEnterApp }) {
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4" />
-                    <span>Tạo Tài Khoản &amp; Bắt Đầu</span>
+                    <span>Tạo Tài Khoản &amp; Đăng Nhập</span>
                   </>
                 )}
               </button>
             </form>
 
-            {/* Chế độ Offline */}
-            <div className="pt-2 text-center border-t border-slate-800/80">
-              <button
-                type="button"
-                onClick={onEnterApp}
-                className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
-              >
-                Bỏ qua, dùng chế độ <strong>Khách (Offline Local)</strong> →
-              </button>
+            {/* Danh sách các tài khoản hiện có */}
+            <div className="pt-2 border-t border-slate-800/80">
+              <div className="flex items-center justify-between text-[11px] text-slate-400">
+                <span>Tài khoản trên Supabase:</span>
+                <span className="text-slate-300 font-bold">{liveAccounts.length} tài khoản</span>
+              </div>
             </div>
           </div>
         )}
