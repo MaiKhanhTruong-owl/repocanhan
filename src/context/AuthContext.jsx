@@ -51,12 +51,26 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  // Đăng nhập bằng Google OAuth
+  const signInWithGoogle = async () => {
+    if (!supabase) throw new Error('Supabase chưa được cấu hình');
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) throw error;
+    return data;
+  };
+
   // Đăng xuất
   const signOut = async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
     setUser(null);
   };
+
 
   return (
     <AuthContext.Provider
@@ -68,6 +82,7 @@ export function AuthProvider({ children }) {
         setIsAuthModalOpen,
         signUp,
         signIn,
+        signInWithGoogle,
         signOut,
       }}
     >
