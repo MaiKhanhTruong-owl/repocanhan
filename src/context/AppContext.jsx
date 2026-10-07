@@ -149,24 +149,34 @@ export function AppProvider({ children }) {
 
     const fetchCloudData = async () => {
       try {
-        // Tải filaments từ Supabase
+        // Tải filaments từ Supabase của user hiện tại
         const { data: filData, error: filErr } = await supabase
           .from('filaments')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        if (!filErr && filData && filData.length > 0) {
-          setFilaments(filData.map(mapFilamentFromDb));
+        if (!filErr && filData) {
+          if (filData.length > 0) {
+            setFilaments(filData.map(mapFilamentFromDb));
+          } else {
+            setFilaments([]);
+          }
         }
 
-        // Tải files từ Supabase
+        // Tải files từ Supabase của user hiện tại
         const { data: fileData, error: fileErr } = await supabase
           .from('print_files')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-        if (!fileErr && fileData && fileData.length > 0) {
-          setFiles(fileData.map(mapFileFromDb));
+        if (!fileErr && fileData) {
+          if (fileData.length > 0) {
+            setFiles(fileData.map(mapFileFromDb));
+          } else {
+            setFiles([]);
+          }
         }
 
         showToast('Đã đồng bộ dữ liệu từ Cloud!');

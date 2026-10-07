@@ -1,6 +1,25 @@
+-- ========================================================
+-- PRINTFLOW - SCRIPT KHỞI TẠO TOÀN BỘ CƠ SỞ DỮ LIỆU
+-- ========================================================
+
+-- 1. BẢNG TÀI KHOẢN (Đăng nhập trực tiếp, không phụ thuộc gửi email)
+create table if not exists public.accounts (
+  username text primary key,
+  password text not null,
+  created_at timestamptz default now()
+);
+alter table public.accounts disable row level security;
+
+-- Tạo sẵn 1 tài khoản mẫu để bạn có thể test đăng nhập được ngay lập tức:
+-- Tên: admin | Mật khẩu: 123456
+insert into public.accounts (username, password)
+values ('admin', '123456')
+on conflict (username) do nothing;
+
+-- 2. BẢNG QUẢN LÝ CUỘN NHỰA IN 3D (filaments)
 create table if not exists public.filaments (
   id text primary key,
-  user_id uuid references auth.users(id) on delete cascade not null default auth.uid(),
+  user_id text not null default 'admin',
   name text not null,
   brand text default 'Bambu Lab',
   material text default 'PLA',
@@ -18,20 +37,12 @@ create table if not exists public.filaments (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+alter table public.filaments disable row level security;
 
-alter table public.filaments enable row level security;
-drop policy if exists "User select filaments" on public.filaments;
-create policy "User select filaments" on public.filaments for select using (auth.uid() = user_id);
-drop policy if exists "User insert filaments" on public.filaments;
-create policy "User insert filaments" on public.filaments for insert with check (auth.uid() = user_id);
-drop policy if exists "User update filaments" on public.filaments;
-create policy "User update filaments" on public.filaments for update using (auth.uid() = user_id);
-drop policy if exists "User delete filaments" on public.filaments;
-create policy "User delete filaments" on public.filaments for delete using (auth.uid() = user_id);
-
+-- 3. BẢNG QUẢN LÝ FILE MÔ HÌNH 3D (print_files)
 create table if not exists public.print_files (
   id text primary key,
-  user_id uuid references auth.users(id) on delete cascade not null default auth.uid(),
+  user_id text not null default 'admin',
   name text not null,
   original_file_name text,
   file_type text default 'stl',
@@ -48,13 +59,4 @@ create table if not exists public.print_files (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
-
-alter table public.print_files enable row level security;
-drop policy if exists "User select files" on public.print_files;
-create policy "User select files" on public.print_files for select using (auth.uid() = user_id);
-drop policy if exists "User insert files" on public.print_files;
-create policy "User insert files" on public.print_files for insert with check (auth.uid() = user_id);
-drop policy if exists "User update files" on public.print_files;
-create policy "User update files" on public.print_files for update using (auth.uid() = user_id);
-drop policy if exists "User delete files" on public.print_files;
-create policy "User delete files" on public.print_files for delete using (auth.uid() = user_id);
+alter table public.print_files disable row level security;

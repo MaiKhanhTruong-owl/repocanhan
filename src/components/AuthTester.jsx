@@ -390,16 +390,16 @@ export default function AuthTester({ onEnterApp }) {
             <form onSubmit={activeTab === 'login' ? handleLogin : handleRegister} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Email / Tên Tài Khoản
+                  Tên Tài Khoản / Email
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
-                    type="email"
+                    type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="VD: admin@printflow.com hoặc email của bạn"
+                    placeholder="ví dụ: admin hoặc tên của bạn"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                 </div>
