@@ -36,7 +36,12 @@ export function AuthProvider({ children }) {
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('User already registered')) {
+        throw new Error('Email này đã được đăng ký trước đó. Vui lòng chuyển sang tab Đăng Nhập!');
+      }
+      throw error;
+    }
     return data;
   };
 
@@ -47,20 +52,15 @@ export function AuthProvider({ children }) {
       email,
       password,
     });
-    if (error) throw error;
-    return data;
-  };
-
-  // Đăng nhập bằng Google OAuth
-  const signInWithGoogle = async () => {
-    if (!supabase) throw new Error('Supabase chưa được cấu hình');
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('Invalid login credentials')) {
+        throw new Error('Email hoặc Mật khẩu không chính xác.');
+      }
+      if (error.message.includes('Email not confirmed')) {
+        throw new Error('Email này chưa được xác nhận. Mẹo: Hãy vào Supabase -> Authentication -> Providers -> Email -> Tắt "Confirm email" để vào được ngay!');
+      }
+      throw error;
+    }
     return data;
   };
 
@@ -70,7 +70,6 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut();
     setUser(null);
   };
-
 
   return (
     <AuthContext.Provider
@@ -82,7 +81,6 @@ export function AuthProvider({ children }) {
         setIsAuthModalOpen,
         signUp,
         signIn,
-        signInWithGoogle,
         signOut,
       }}
     >
