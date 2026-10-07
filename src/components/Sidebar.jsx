@@ -18,7 +18,7 @@ export default function Sidebar({ activeNav = 'home', onSelectNav }) {
       }`}
     >
       {/* 1. Logo trên đầu */}
-      <div className="mb-8 flex flex-col items-center gap-1 group cursor-pointer" title="PrintFlow 3D">
+      <div className="mb-8 flex flex-col items-center group cursor-pointer" title="PrintFlow 3D">
         <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-md shadow-indigo-500/20 transition-transform group-hover:scale-105">
           <div
             className={`w-full h-full rounded-[14px] flex items-center justify-center transition-colors ${
@@ -28,13 +28,6 @@ export default function Sidebar({ activeNav = 'home', onSelectNav }) {
             <Box className="w-6 h-6 text-indigo-500" />
           </div>
         </div>
-        <span
-          className={`text-[10px] font-extrabold tracking-wider transition-colors uppercase ${
-            isDark ? 'text-zinc-400 group-hover:text-indigo-400' : 'text-slate-600 group-hover:text-indigo-600'
-          }`}
-        >
-          Flow
-        </span>
       </div>
 
       {/* 2. Menu Icons - Dưới là icon Home */}
