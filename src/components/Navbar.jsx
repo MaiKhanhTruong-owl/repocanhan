@@ -18,7 +18,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 
-export default function Navbar() {
+export default function Navbar({ onOpenTester }) {
   const { user, isConfigured, setIsAuthModalOpen, signOut } = useAuth();
   const {
     activeTab,
@@ -233,12 +233,12 @@ export default function Navbar() {
                 </div>
               ) : (
                 <button
-                  onClick={() => setIsAuthModalOpen(true)}
+                  onClick={() => (onOpenTester ? onOpenTester() : setIsAuthModalOpen(true))}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-950/70 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-500/30 text-xs font-medium transition-all shadow-sm"
-                  title="Đăng nhập tài khoản để đồng bộ Cloud đa thiết bị"
+                  title="Kiểm tra kết nối và đăng nhập tài khoản Supabase"
                 >
                   <Cloud className="w-3.5 h-3.5 text-indigo-400" />
-                  <span className="hidden sm:inline">Đồng Bộ Cloud</span>
+                  <span className="hidden sm:inline">Kiểm Tra Supabase</span>
                 </button>
               )}
             </div>

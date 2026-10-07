@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { AppProvider, useApp } from './context/AppContext';
 import Navbar from './components/Navbar';
@@ -9,9 +9,10 @@ import AmsManager from './components/AmsManager';
 import FilamentModal from './components/FilamentModal';
 import FileModal from './components/FileModal';
 import AuthModal from './components/AuthModal';
+import AuthTester from './components/AuthTester';
 import Toast from './components/Toast';
 
-function MainContent() {
+function MainContent({ onOpenTester }) {
   const { activeTab } = useApp();
 
   return (
@@ -30,21 +31,38 @@ function MainContent() {
   );
 }
 
+function AppContent() {
+  const [showAuthTester, setShowAuthTester] = useState(true);
+
+  if (showAuthTester) {
+    return <AuthTester onEnterApp={() => setShowAuthTester(false)} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+      <Navbar onOpenTester={() => setShowAuthTester(true)} />
+      <MainContent onOpenTester={() => setShowAuthTester(true)} />
+      <footer className="mt-auto py-6 border-t border-slate-900 text-center text-xs text-slate-400">
+        <div className="flex items-center justify-center gap-4">
+          <span>PrintFlow 3D Hub • Đồng bộ đám mây Supabase hoặc Offline LocalStorage</span>
+          <button
+            onClick={() => setShowAuthTester(true)}
+            className="text-indigo-400 hover:underline font-semibold"
+          >
+            Quay lại màn hình Kiểm Tra Supabase &amp; Đăng Nhập
+          </button>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <AppProvider>
-        <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-          <Navbar />
-          <MainContent />
-          <footer className="mt-auto py-6 border-t border-slate-900 text-center text-xs text-slate-400">
-            <p>
-              PrintFlow 3D Hub • Đồng bộ đám mây Supabase hoặc hoạt động Offline LocalStorage.
-            </p>
-          </footer>
-        </div>
+        <AppContent />
       </AppProvider>
     </AuthProvider>
   );
 }
-
