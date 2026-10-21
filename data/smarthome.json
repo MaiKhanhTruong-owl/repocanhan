@@ -1,0 +1,26 @@
+{
+  "devices": [
+    {
+      "id": "printer_plug",
+      "name": "máy in 3D",
+      "type": "plug",
+      "label": "Ổ cắm Máy In 3D",
+      "state": false,
+      "autoOffOnFinish": false
+    },
+    {
+      "id": "desk_lamp",
+      "name": "đèn bàn",
+      "type": "light",
+      "label": "Đèn Bàn",
+      "state": false
+    },
+    {
+      "id": "aquarium_light",
+      "name": "đèn hồ cá",
+      "type": "light",
+      "label": "Đèn Hồ Cá",
+      "state": false
+    }
+  ]
+}

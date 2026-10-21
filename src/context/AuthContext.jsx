@@ -94,6 +94,53 @@ export function AuthProvider({ children }) {
     persistUser(null);
   };
 
+  // 4. Đăng nhập trực tiếp bằng Google OAuth
+  const signInWithGoogle = async () => {
+    // Kiểm tra xem đã có token sẵn từ trước chưa
+    try {
+      const res = await fetch('/api/google/userinfo');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          persistUser(data.user);
+          return data.user;
+        }
+      }
+    } catch (_) {}
+
+    // Nếu chưa có phiên, mở popup Google OAuth
+    const urlRes = await fetch('/api/google/auth-url');
+    const urlData = await urlRes.json();
+    if (!urlData.url) {
+      throw new Error(urlData.error || 'Không tạo được đường dẫn Google Auth.');
+    }
+
+    window.open(urlData.url, '_blank', 'width=600,height=750');
+
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        try {
+          const checkRes = await fetch('/api/google/userinfo');
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            if (checkData.success && checkData.user) {
+              clearInterval(interval);
+              persistUser(checkData.user);
+              resolve(checkData.user);
+            }
+          }
+        } catch (_) {}
+
+        if (attempts > 60) {
+          clearInterval(interval);
+          reject(new Error('Hết thời gian chờ đăng nhập Google.'));
+        }
+      }, 2000);
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -105,6 +152,7 @@ export function AuthProvider({ children }) {
         signUp,
         signIn,
         signOut,
+        signInWithGoogle,
       }}
     >
       {children}

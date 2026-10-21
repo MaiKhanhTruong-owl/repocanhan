@@ -12,7 +12,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
     "@tailwindcss/vite": "^4.3.3",
+    "google-assistant": "^0.7.0",
     "lucide-react": "^1.52.0",
+    "mqtt": "^5.16.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "tailwindcss": "^4.3.3"

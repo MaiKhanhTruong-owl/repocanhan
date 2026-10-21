@@ -1,57 +1,139 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Sidebar from './components/Sidebar';
 import AuthTester from './components/AuthTester';
-import { Home, Sparkles, CheckCircle2, Sun, Moon } from 'lucide-react';
+import PrinterMonitor from './components/PrinterMonitor';
+import PrintHistory from './components/PrintHistory';
+import SmartHomeCard from './components/SmartHomeCard';
+import BonjourrBackground from './components/BonjourrBackground';
+import BonjourrSettings from './components/BonjourrSettings';
+import { loadBonjourrConfig, saveBonjourrConfig } from './utils/bonjourrConfig';
+import { Home, Sparkles, CheckCircle2, Sun, Moon, History, Zap, Palette } from 'lucide-react';
 
 function Dashboard() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [activeNav, setActiveNav] = useState('home');
+  const [activeNav, setActiveNavState] = useState(() => {
+    return localStorage.getItem('printflow_active_nav') || 'home';
+  });
+
+  const setActiveNav = (nav) => {
+    setActiveNavState(nav);
+    localStorage.setItem('printflow_active_nav', nav);
+  };
+
+  // Luôn đảm bảo trạng thái trang được đồng bộ vào localStorage
+  useEffect(() => {
+    localStorage.setItem('printflow_active_nav', activeNav);
+  }, [activeNav]);
+  const [bonjourrConfig, setBonjourrConfig] = useState(() => loadBonjourrConfig());
+
+  const handleUpdateBonjourrConfig = (newConfig) => {
+    setBonjourrConfig(newConfig);
+    saveBonjourrConfig(newConfig);
+  };
+
+  const handleAutoRotate = (nextIndex) => {
+    setBonjourrConfig((prev) => {
+      const updated = { ...prev, currentIndex: nextIndex };
+      saveBonjourrConfig(updated);
+      return updated;
+    });
+  };
 
   const isDark = theme === 'dark';
 
   return (
     <div
-      className={`min-h-screen flex font-sans transition-colors duration-200 ${
-        isDark ? 'bg-[#18191c] text-zinc-100' : 'bg-[#f4f6f8] text-slate-800'
+      className={`min-h-screen flex font-sans transition-colors duration-200 relative ${
+        !bonjourrConfig.enabled
+          ? isDark
+            ? 'bg-[#18191c] text-zinc-100'
+            : 'bg-[#f4f6f8] text-slate-800'
+          : isDark
+          ? 'text-zinc-100'
+          : 'text-slate-800'
       }`}
     >
+      {/* 0. Lớp hình nền Bonjourr toàn màn hình cố định */}
+      <BonjourrBackground config={bonjourrConfig} onAutoRotate={handleAutoRotate} />
+
       {/* 1. Menu Sidebar bên trái */}
       <Sidebar activeNav={activeNav} onSelectNav={setActiveNav} />
 
       {/* 2. Trang chính bên phải */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 relative z-10">
         {/* Header trang chính - Phân biệt rõ ranh giới */}
         <header
-          className={`h-16 px-8 flex items-center justify-between backdrop-blur-md transition-colors duration-200 ${
-            isDark
-              ? 'bg-[#1f2024]/90 border-b border-zinc-800' // Tối: Xám đậm
-              : 'bg-white border-b-2 border-slate-300 shadow-xs' // Sáng: Trắng tinh viền rõ rệt
+          className={`h-16 px-4 sm:px-8 flex items-center justify-between backdrop-blur-xl transition-colors duration-200 shrink-0 ${
+            bonjourrConfig.enabled
+              ? isDark
+                ? 'bg-[#1f2024]/80 border-b border-zinc-800/80 shadow-md'
+                : 'bg-white/80 border-b border-slate-300/80 shadow-sm'
+              : isDark
+              ? 'bg-[#1f2024]/90 border-b border-zinc-800'
+              : 'bg-white border-b-2 border-slate-300 shadow-xs'
           }`}
         >
-          {/* Góc bên trái header: Tiêu đề trang */}
-          <div className="flex items-center gap-2.5">
-            <Home className="w-5 h-5 text-indigo-500" />
-            <h1 className={`text-base font-bold tracking-tight ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
-              Trang Chủ
-            </h1>
+          {/* Góc bên trái header: Tiêu đề trang theo mục được chọn */}
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            {activeNav === 'home' && (
+              <>
+                <Home className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0" />
+                <h1 className={`text-sm sm:text-base font-bold tracking-tight truncate ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+                  Trang Chủ • Giám Sát Máy In
+                </h1>
+              </>
+            )}
+            {activeNav === 'smarthome' && (
+              <>
+                <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0" />
+                <h1 className={`text-sm sm:text-base font-bold tracking-tight truncate ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+                  Google Home • Ổ Cắm & Đèn Thông Minh
+                </h1>
+              </>
+            )}
+            {activeNav === 'history' && (
+              <>
+                <History className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0" />
+                <h1 className={`text-sm sm:text-base font-bold tracking-tight truncate ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+                  Lịch Sử In & Thành Phẩm
+                </h1>
+              </>
+            )}
+            {activeNav === 'settings' && (
+              <>
+                <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0" />
+                <h1 className={`text-sm sm:text-base font-bold tracking-tight truncate ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+                  Cài Đặt • Hình Nền Bonjourr Startpage
+                </h1>
+              </>
+            )}
           </div>
 
           {/* Góc bên phải header: Trạng thái User & Nút Sáng/Tối */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* User status badge */}
             <div
-              className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-xl border transition-colors ${
+              className={`flex items-center gap-1.5 sm:gap-2 text-xs px-2.5 sm:px-3 py-1.5 rounded-xl border transition-colors ${
                 isDark
                   ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300'
                   : 'bg-slate-100 border-slate-300 text-slate-700 font-medium'
               }`}
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className={isDark ? 'text-zinc-400' : 'text-slate-500'}>Tài khoản:</span>
+              {user?.picture ? (
+                <img
+                  src={user.picture}
+                  alt={user.username}
+                  className="w-4 h-4 rounded-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              )}
+              <span className={`hidden sm:inline ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>Tài khoản:</span>
               <span className={isDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'}>
                 {user?.username}
               </span>
@@ -77,17 +159,22 @@ function Dashboard() {
           </div>
         </header>
 
-        {/* Khu vực nội dung Canvas chính - Sạch sẽ, không chú thích thừa */}
-        <div className="flex-1 p-8 flex flex-col items-center justify-center">
-          <div
-            className={`w-full max-w-2xl h-80 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-colors ${
-              isDark
-                ? 'border-zinc-800 bg-zinc-900/30 text-zinc-500'
-                : 'border-slate-300 bg-white/50 text-slate-400'
-            }`}
-          >
-            <p className="text-sm font-medium">Khu vực làm việc Trang Chủ</p>
-          </div>
+        {/* Khu vực nội dung Canvas chính - Hiển thị theo trang được chọn */}
+        <div className="flex-1 p-3.5 sm:p-6 md:p-8 flex flex-col items-center justify-start overflow-y-auto">
+          {activeNav === 'home' && <PrinterMonitor />}
+          {activeNav === 'smarthome' && (
+            <div className="w-full max-w-4xl space-y-6 flex flex-col items-center">
+              <SmartHomeCard />
+            </div>
+          )}
+          {activeNav === 'history' && <PrintHistory />}
+          {activeNav === 'settings' && (
+            <BonjourrSettings
+              config={bonjourrConfig}
+              onUpdateConfig={handleUpdateBonjourrConfig}
+              onNavigateHome={() => setActiveNav('home')}
+            />
+          )}
         </div>
       </main>
     </div>

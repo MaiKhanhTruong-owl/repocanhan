@@ -1,0 +1,27 @@
+{
+  "activePrinterId": "p1s_2",
+  "printers": [
+    {
+      "id": "p1s_1",
+      "name": "Bambu P1S - Máy 1 (QT)",
+      "model": "Bambu Lab P1S",
+      "ip": "192.168.0.105",
+      "accessCode": "10416028",
+      "serial": "01P00C591301162",
+      "wifi": "mh 2.4g",
+      "lanOnlyMode": false,
+      "enabled": true
+    },
+    {
+      "id": "p1s_2",
+      "name": "Bambu P1S - Máy 2 (RF)",
+      "model": "Bambu Lab P1S",
+      "ip": "192.168.0.107",
+      "accessCode": "2f41a31e",
+      "serial": "01P199611800016",
+      "wifi": "mh 2.4g",
+      "lanOnlyMode": false,
+      "enabled": true
+    }
+  ]
+}

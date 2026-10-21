@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sơ Đồ Đấu Dây Chuẩn: ESP32-S3 + 2x NRF24L01+ PA/LNA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .header {
+      max-width: 1000px;
+      width: 100%;
+      background: #ffffff;
+      padding: 20px 28px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 24px;
+      color: #0f172a;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .badge-s3 {
+      background: #2563eb;
+      color: white;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .header p {
+      color: #64748b;
+      font-size: 14px;
+    }
+    .alert-box {
+      margin-top: 14px;
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 13px;
+      color: #991b1b;
+      border-radius: 4px;
+    }
+    .svg-container {
+      max-width: 1000px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      padding: 10px;
+    }
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .controls {
+      margin-top: 15px;
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      background: #0f172a;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn:hover { background: #334155; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>
+      Sơ Đồ Đấu Nối Chuẩn: ESP32-S3 + Dual NRF24L01+ PA/LNA
+      <span class="badge-s3">ESP32-S3 N16R8</span>
+    </h1>
+    <p>Bản vẽ đã khắc phục triệt để lỗi cấp nguồn 4.2V gây cháy module trên mạng và tương thích chân ESP32-S3.</p>
+    <div class="alert-box">
+      <strong>⚠️ LƯU Ý SỐNG CÒN:</strong> Đã bổ sung IC hạ áp <strong>AMS1117-3.3V</strong> riêng biệt nuôi 2 NRF24L01. Tuyệt đối không cắm thẳng nguồn Pin 3.7V~4.2V vào VCC của NRF24L01 để tránh cháy chip radio!
+    </div>
+  </div>
+
+  <div class="svg-container">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1450" width="1000" height="1450">
+      <defs>
+        <!-- Bộ lọc bóng đổ -->
+        <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+          <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15" />
+        </filter>
+        <filter id="glow-gold" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#eab308" flood-opacity="0.6" />
+        </filter>
+      </defs>
+
+      <!-- NỀN TRẮNG SÁCH SẼ -->
+      <rect width="1000" height="1450" fill="#ffffff" />
+      <rect x="15" y="15" width="970" height="1420" rx="12" fill="#fafafa" stroke="#e2e8f0" stroke-width="2" />
+
+      <!-- ========================================== -->
+      <!-- 1. KHỐI NGUỒN: TP4056 + SWITCH + PIN (TOP) -->
+      <!-- ========================================== -->
+
+      <!-- Module TP4056 (Xanh dương) -->
+      <g id="tp4056" transform="translate(180, 50)" filter="url(#shadow)">
+        <rect width="180" height="110" rx="8" fill="#1e40af" stroke="#1d4ed8" stroke-width="2" />
+        <!-- Cổng Type-C -->
+        <rect x="-10" y="38" width="22" height="34" rx="4" fill="#94a3b8" stroke="#475569" stroke-width="1.5" />
+        <rect x="-6" y="44" width="14" height="22" rx="2" fill="#334155" />
+        <!-- IC & Linh kiện -->
+        <rect x="60" y="35" width="45" height="40" rx="2" fill="#0f172a" />
+        <text x="82" y="59" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="monospace">TP4056</text>
+        <!-- Đèn báo -->
+        <circle cx="35" cy="35" r="4" fill="#ef4444" />
+        <circle cx="35" cy="55" r="4" fill="#3b82f6" />
+        <text x="35" y="25" fill="#e2e8f0" font-size="9" text-anchor="middle">CHRG/STDBY</text>
+        <text x="90" y="22" fill="#ffffff" font-weight="bold" font-size="14" text-anchor="middle">TP4056 TYPE-C</text>
+        
+        <!-- Các chân ra -->
+        <!-- B+ -->
+        <circle cx="165" cy="30" r="6" fill="#dc2626" />
+        <text x="145" y="34" fill="#ffffff" font-size="11" font-weight="bold">B+</text>
+        <!-- B- -->
+        <circle cx="165" cy="80" r="6" fill="#0f172a" stroke="#ffffff" stroke-width="1" />
+        <text x="145" y="84" fill="#ffffff" font-size="11" font-weight="bold">B-</text>
+        <!-- OUT+ -->
+        <circle cx="130" cy="98" r="6" fill="#ea580c" />
+        <text x="130" y="88" fill="#f97316" font-size="10" font-weight="bold" text-anchor="middle">OUT+</text>
+        <!-- OUT- -->
+        <circle cx="50" cy="98" r="6" fill="#0f172a" stroke="#ffffff" stroke-width="1" />
+        <text x="50" y="88" fill="#94a3b8" font-size="10" font-weight="bold" text-anchor="middle">OUT-</text>
+      </g>
+
+      <!-- Công tắc (Switch) -->
+      <g id="switch" transform="translate(470, 65)" filter="url(#shadow)">
+        <rect width="60" height="75" rx="6" fill="#334155" stroke="#1e293b" stroke-width="2" />
+        <rect x="10" y="15" width="40" height="45" rx="3" fill="#0f172a" />
+        <line x1="20" y1="37" x2="40" y2="37" stroke="#ffffff" stroke-width="3" />
+        <!-- 2 chân switch -->
+        <circle cx="20" cy="80" r="4" fill="#94a3b8" />
+        <circle cx="40" cy="80" r="4" fill="#94a3b8" />
+        <text x="30" y="100" fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">Công Tắc</text>
+      </g>
+
+      <!-- Pin Li-ion 3.7V -->
+      <g id="battery" transform="translate(680, 55)" filter="url(#shadow)">
+        <rect width="180" height="95" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="2" />
+        <rect x="160" y="32" width="10" height="30" rx="2" fill="#94a3b8" />
+        <text x="90" y="45" fill="#0f172a" font-weight="bold" font-size="15" text-anchor="middle">PIN 3.7V LI-ION</text>
+        <text x="90" y="65" fill="#64748b" font-size="12" text-anchor="middle">18650 / Li-Po</text>
+        <!-- Cực dương & âm -->
+        <circle cx="25" cy="30" r="7" fill="#dc2626" />
+        <text x="25" y="34" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">+</text>
+        <text x="45" y="34" fill="#dc2626" font-size="12" font-weight="bold">Positive</text>
+
+        <circle cx="25" cy="70" r="7" fill="#0f172a" />
+        <text x="25" y="73" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">-</text>
+        <text x="45" y="74" fill="#334155" font-size="12" font-weight="bold">Negative</text>
+      </g>
+
+      <!-- ========================================== -->
+      <!-- 2. IC ỔN ÁP AMS1117-3.3V (CỨU TINH CHỐNG CHÁY) -->
+      <!-- ========================================== -->
+      <g id="ams1117" transform="translate(420, 230)" filter="url(#shadow)">
+        <rect width="160" height="100" rx="8" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
+        <!-- Tản nhiệt & IC -->
+        <rect x="45" y="15" width="70" height="40" rx="3" fill="#0f172a" />
+        <rect x="60" y="8" width="40" height="10" fill="#94a3b8" />
+        <text x="80" y="38" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">AMS1117</text>
+        <text x="80" y="50" fill="#38bdf8" font-size="9" text-anchor="middle">3.3V 1A LDO</text>
+        <!-- 3 Chân: VIN, GND, VOUT -->
+        <g transform="translate(25, 75)">
+          <circle cx="15" cy="15" r="7" fill="#ea580c" />
+          <text x="15" y="10" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">VIN</text>
+          
+          <circle cx="55" cy="15" r="7" fill="#0f172a" stroke="#fff" stroke-width="1" />
+          <text x="55" y="10" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">GND</text>
+          
+          <circle cx="95" cy="15" r="7" fill="#dc2626" />
+          <text x="95" y="10" fill="#ffffff" font-size="9" font-weight="bold" text-anchor="middle">3.3V</text>
+        </g>
+      </g>
+
+      <!-- ========================================== -->
+      <!-- 3. NRF24L01+ PA/LNA (BÊN TRÁI)             -->
+      <!-- ========================================== -->
+      <g id="nrf_left" transform="translate(60, 480)" filter="url(#shadow)">
+        <!-- Thân board đen dài -->
+        <rect width="130" height="520" rx="8" fill="#18181b" stroke="#27272a" stroke-width="2" />
+        <!-- Anten SMA Vàng -->
+        <g transform="translate(42, -50)">
+          <rect width="46" height="60" rx="4" fill="#eab308" stroke="#ca8a04" stroke-width="2" filter="url(#glow-gold)" />
+          <circle cx="23" cy="20" r="14" fill="#a16207" />
+          <circle cx="23" cy="20" r="6" fill="#fef08a" />
+        </g>
+        <text x="65" y="45" fill="#facc15" font-weight="bold" font-size="12" text-anchor="middle">NRF24L01+</text>
+        <text x="65" y="62" fill="#a1a1aa" font-size="11" text-anchor="middle">PA / LNA (TRÁI)</text>
+        
+        <!-- Mạch RF Shield & Linh kiện -->
+        <rect x="25" y="80" width="80" height="110" rx="4" fill="#27272a" stroke="#3f3f46" />
+        <rect x="35" y="210" width="60" height="50" rx="2" fill="#09090b" />
+        
+        <!-- Tụ lọc 47uF gắn ngoài -->
+        <g transform="translate(-35, 380)">
+          <rect width="26" height="42" rx="4" fill="#475569" stroke="#1e293b" />
+          <rect x="0" y="8" width="8" height="34" fill="#cbd5e1" />
+          <text x="4" y="28" fill="#0f172a" font-size="9" font-weight="bold">-</text>
+          <text x="13" y="-8" fill="#dc2626" font-size="10" font-weight="bold" text-anchor="middle">Tụ 47µF</text>
+          <!-- Chân tụ -->
+          <line x1="26" y1="15" x2="55" y2="40" stroke="#dc2626" stroke-width="2" />
+          <line x1="26" y1="30" x2="55" y2="60" stroke="#000000" stroke-width="2" />
+        </g>
+
+        <!-- Cụm 8 chân 2x4 -->
+        <g transform="translate(20, 420)">
+          <rect width="90" height="85" rx="4" fill="#09090b" stroke="#3f3f46" stroke-width="1.5" />
+          
+          <!-- Hàng 1 (GND, CE, SCK, MISO) -->
+          <circle cx="25" cy="20" r="6" fill="#000000" stroke="#fff" stroke-width="1" id="nrf1_p1" />
+          <text x="25" y="10" fill="#cbd5e1" font-size="9" text-anchor="middle">1:GND</text>
+          
+          <circle cx="25" cy="40" r="6" fill="#f97316" id="nrf1_p3" />
+          <text x="5" y="43" fill="#f97316" font-size="9">3:CE</text>
+          
+          <circle cx="25" cy="60" r="6" fill="#eab308" id="nrf1_p5" />
+          <text x="5" y="63" fill="#eab308" font-size="9">5:SCK</text>
+          
+          <circle cx="25" cy="80" r="6" fill="#a855f7" id="nrf1_p7" />
+          <text x="0" y="83" fill="#a855f7" font-size="9">7:MISO</text>
+
+          <!-- Hàng 2 (VCC, CSN, MOSI, IRQ) -->
+          <circle cx="65" cy="20" r="6" fill="#dc2626" id="nrf1_p2" />
+          <text x="65" y="10" fill="#ef4444" font-size="9" text-anchor="middle">2:VCC</text>
+          
+          <circle cx="65" cy="40" r="6" fill="#2563eb" id="nrf1_p4" />
+          <text x="75" y="43" fill="#3b82f6" font-size="9">4:CSN</text>
+          
+          <circle cx="65" cy="60" r="6" fill="#22c55e" id="nrf1_p6" />
+          <text x="75" y="63" fill="#22c55e" font-size="9">6:MOSI</text>
+          
+          <circle cx="65" cy="80" r="6" fill="#71717a" id="nrf1_p8" />
+          <text x="75" y="83" fill="#71717a" font-size="9">8:NC</text>
+        </g>
+      </g>
+
+      <!-- ========================================== -->
+      <!-- 4. ESP32-S3 DEVKIT (TRUNG TÂM)             -->
+      <!-- ========================================== -->
+      <g id="esp32s3" transform="translate(360, 480)" filter="url(#shadow)">
+        <!-- Board đen -->
+        <rect width="280" height="740" rx="12" fill="#09090b" stroke="#27272a" stroke-width="2.5" />
+        
+        <!-- Metal Shield ESP32-S3 -->
+        <rect x="40" y="60" width="200" height="180" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2" />
+        <path d="M 60 75 Q 80 75 90 90 T 120 90" fill="none" stroke="#64748b" stroke-width="3" />
+        <text x="140" y="125" fill="#0f172a" font-weight="900" font-size="18" text-anchor="middle">ESPRESSIF</text>
+        <text x="140" y="150" fill="#1e293b" font-weight="bold" font-size="15" text-anchor="middle">ESP32-S3-WROOM-1</text>
+        <text x="140" y="172" fill="#475569" font-size="12" text-anchor="middle">N16R8 (16MB/8MB)</text>
+        <rect x="115" y="190" width="50" height="30" fill="#475569" rx="2" />
+
+        <!-- Cổng Type-C phía dưới -->
+        <rect x="105" y="715" width="70" height="35" rx="6" fill="#94a3b8" stroke="#475569" stroke-width="2" />
+        <rect x="115" y="725" width="50" height="15" rx="3" fill="#1e293b" />
+        <text x="140" y="705" fill="#64748b" font-size="11" text-anchor="middle">USB TYPE-C</text>
+
+        <!-- Nút Boot & Reset -->
+        <circle cx="65" cy="690" r="9" fill="#334155" stroke="#64748b" />
+        <text x="65" y="675" fill="#94a3b8" font-size="10" text-anchor="middle">RESET</text>
+        <circle cx="215" cy="690" r="9" fill="#334155" stroke="#64748b" />
+        <text x="215" y="675" fill="#94a3b8" font-size="10" text-anchor="middle">BOOT</text>
+
+        <!-- HÀNG CHÂN BÊN TRÁI (LEFT HEADER) -->
+        <g transform="translate(15, 270)">
+          <!-- 3V3 -->
+          <circle cx="10" cy="20" r="5" fill="#dc2626" />
+          <text x="22" y="24" fill="#94a3b8" font-size="11">3V3</text>
+          
+          <!-- GPIO 9 (CE1) -->
+          <circle cx="10" cy="60" r="6" fill="#f97316" stroke="#fff" stroke-width="1.5" />
+          <text x="22" y="64" fill="#f97316" font-weight="bold" font-size="12">G9 (CE 1)</text>
+
+          <!-- GPIO 10 (CSN1) -->
+          <circle cx="10" cy="100" r="6" fill="#2563eb" stroke="#fff" stroke-width="1.5" />
+          <text x="22" y="104" fill="#3b82f6" font-weight="bold" font-size="12">G10 (CSN 1)</text>
+
+          <!-- GPIO 11 (MOSI chung) -->
+          <circle cx="10" cy="140" r="6" fill="#22c55e" stroke="#fff" stroke-width="1.5" />
+          <text x="22" y="144" fill="#22c55e" font-weight="bold" font-size="12">G11 (MOSI)</text>
+
+          <!-- GPIO 12 (SCK chung) -->
+          <circle cx="10" cy="180" r="6" fill="#eab308" stroke="#fff" stroke-width="1.5" />
+          <text x="22" y="184" fill="#eab308" font-weight="bold" font-size="12">G12 (SCK)</text>
+
+          <!-- GPIO 13 (MISO chung) -->
+          <circle cx="10" cy="220" r="6" fill="#a855f7" stroke="#fff" stroke-width="1.5" />
+          <text x="22" y="224" fill="#a855f7" font-weight="bold" font-size="12">G13 (MISO)</text>
+
+          <!-- 5V / VBUS -->
+          <circle cx="10" cy="300" r="6" fill="#ea580c" stroke="#fff" stroke-width="1.5" />
+          <text x="22" y="304" fill="#f97316" font-weight="bold" font-size="12">5V (VIN)</text>
+
+          <!-- GND -->
+          <circle cx="10" cy="340" r="6" fill="#000000" stroke="#fff" stroke-width="1.5" />
+          <text x="22" y="344" fill="#cbd5e1" font-weight="bold" font-size="12">GND</text>
+        </g>
+
+        <!-- HÀNG CHÂN BÊN PHẢI (RIGHT HEADER) -->
+        <g transform="translate(265, 270)">
+          <!-- GND -->
+          <circle cx="-10" cy="20" r="5" fill="#000000" stroke="#fff" stroke-width="1" />
+          <text x="-22" y="24" fill="#cbd5e1" font-size="11" text-anchor="end">GND</text>
+
+          <!-- GPIO 21 (CE2) -->
+          <circle cx="-10" cy="60" r="6" fill="#14b8a6" stroke="#fff" stroke-width="1.5" />
+          <text x="-22" y="64" fill="#14b8a6" font-weight="bold" font-size="12" text-anchor="end">(CE 2) G21</text>
+
+          <!-- GPIO 14 (CSN2) -->
+          <circle cx="-10" cy="100" r="6" fill="#ec4899" stroke="#fff" stroke-width="1.5" />
+          <text x="-22" y="104" fill="#ec4899" font-weight="bold" font-size="12" text-anchor="end">(CSN 2) G14</text>
+
+          <!-- VÙNG CẢNH BÁO GPIO 33-37 PSRAM -->
+          <g transform="translate(-160, 150)">
+            <rect width="150" height="70" rx="4" fill="#450a0a" stroke="#dc2626" stroke-width="1" />
+            <text x="75" y="22" fill="#f87171" font-size="10" font-weight="bold" text-anchor="middle">⚠️ KHÔNG CẮM DÂY:</text>
+            <text x="75" y="40" fill="#fca5a5" font-size="10" text-anchor="middle">GPIO 33, 34, 35, 36, 37</text>
+            <text x="75" y="58" fill="#f87171" font-size="9" text-anchor="middle">(Bộ nhớ Octal PSRAM)</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- ========================================== -->
+      <!-- 5. NRF24L01+ PA/LNA (BÊN PHẢI)            -->
+      <!-- ========================================== -->
+      <g id="nrf_right" transform="translate(810, 480)" filter="url(#shadow)">
+        <!-- Thân board đen dài -->
+        <rect width="130" height="520" rx="8" fill="#18181b" stroke="#27272a" stroke-width="2" />
+        <!-- Anten SMA Vàng -->
+        <g transform="translate(42, -50)">
+          <rect width="46" height="60" rx="4" fill="#eab308" stroke="#ca8a04" stroke-width="2" filter="url(#glow-gold)" />
+          <circle cx="23" cy="20" r="14" fill="#a16207" />
+          <circle cx="23" cy="20" r="6" fill="#fef08a" />
+        </g>
+        <text x="65" y="45" fill="#facc15" font-weight="bold" font-size="12" text-anchor="middle">NRF24L01+</text>
+        <text x="65" y="62" fill="#a1a1aa" font-size="11" text-anchor="middle">PA / LNA (PHẢI)</text>
+        
+        <!-- Mạch RF Shield & Linh kiện -->
+        <rect x="25" y="80" width="80" height="110" rx="4" fill="#27272a" stroke="#3f3f46" />
+        <rect x="35" y="210" width="60" height="50" rx="2" fill="#09090b" />
+        
+        <!-- Tụ lọc 47uF gắn ngoài -->
+        <g transform="translate(140, 380)">
+          <rect width="26" height="42" rx="4" fill="#475569" stroke="#1e293b" />
+          <rect x="0" y="8" width="8" height="34" fill="#cbd5e1" />
+          <text x="4" y="28" fill="#0f172a" font-size="9" font-weight="bold">-</text>
+          <text x="13" y="-8" fill="#dc2626" font-size="10" font-weight="bold" text-anchor="middle">Tụ 47µF</text>
+          <!-- Chân tụ -->
+          <line x1="0" y1="15" x2="-35" y2="40" stroke="#dc2626" stroke-width="2" />
+          <line x1="0" y1="30" x2="-75" y2="40" stroke="#000000" stroke-width="2" />
+        </g>
+
+        <!-- Cụm 8 chân 2x4 -->
+        <g transform="translate(20, 420)">
+          <rect width="90" height="85" rx="4" fill="#09090b" stroke="#3f3f46" stroke-width="1.5" />
+          
+          <!-- Hàng 1 (GND, CE, SCK, MISO) -->
+          <circle cx="25" cy="20" r="6" fill="#000000" stroke="#fff" stroke-width="1" />
+          <text x="25" y="10" fill="#cbd5e1" font-size="9" text-anchor="middle">1:GND</text>
+          
+          <circle cx="25" cy="40" r="6" fill="#14b8a6" />
+          <text x="5" y="43" fill="#14b8a6" font-size="9">3:CE</text>
+          
+          <circle cx="25" cy="60" r="6" fill="#eab308" />
+          <text x="5" y="63" fill="#eab308" font-size="9">5:SCK</text>
+          
+          <circle cx="25" cy="80" r="6" fill="#a855f7" />
+          <text x="0" y="83" fill="#a855f7" font-size="9">7:MISO</text>
+
+          <!-- Hàng 2 (VCC, CSN, MOSI, IRQ) -->
+          <circle cx="65" cy="20" r="6" fill="#dc2626" />
+          <text x="65" y="10" fill="#ef4444" font-size="9" text-anchor="middle">2:VCC</text>
+          
+          <circle cx="65" cy="40" r="6" fill="#ec4899" />
+          <text x="75" y="43" fill="#ec4899" font-size="9">4:CSN</text>
+          
+          <circle cx="65" cy="60" r="6" fill="#22c55e" />
+          <text x="75" y="63" fill="#22c55e" font-size="9">6:MOSI</text>
+          
+          <circle cx="65" cy="80" r="6" fill="#71717a" />
+          <text x="75" y="83" fill="#71717a" font-size="9">8:NC</text>
+        </g>
+      </g>
+
+      <!-- ========================================== -->
+      <!-- 6. ĐƯỜNG DÂY ĐẤU NỐI (ROUTING WIRES)       -->
+      <!-- ========================================== -->
+
+      <!-- [A] ĐƯỜNG DÂY NGUỒN PIN & TP4056 -->
+      <!-- Pin (+) -> Switch chân 1 -->
+      <path d="M 705 85 L 510 85 L 510 145" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round" />
+      <!-- Switch chân 2 -> TP4056 B+ -->
+      <path d="M 490 145 L 490 80 L 345 80" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round" />
+      <!-- Pin (-) -> TP4056 B- -->
+      <path d="M 705 125 L 345 125 L 345 130" fill="none" stroke="#000000" stroke-width="3.5" stroke-linecap="round" />
+
+      <!-- [B] ĐƯỜNG DÂY CẤP NGUỒN AMS1117 -->
+      <!-- TP4056 OUT+ -> AMS1117 VIN (Chân cam) -->
+      <path d="M 310 150 L 310 200 L 440 200 L 440 320" fill="none" stroke="#ea580c" stroke-width="3.5" stroke-linecap="round" />
+      <!-- TP4056 OUT+ -> ESP32 5V (Nguồn dự phòng khi không cắm USB) -->
+      <path d="M 310 200 L 325 200 L 325 780 L 370 780" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-dasharray="6,4" stroke-linecap="round" />
+
+      <!-- [C] ĐƯỜNG DÂY MASS (GND CHUNG - MÀU ĐEN) -->
+      <!-- TP4056 OUT- -> AMS1117 GND -> ESP32 GND -> NRF GND -->
+      <path d="M 230 150 L 230 215 L 475 215 L 475 320" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" />
+      <!-- Mass sang ESP32 GND -->
+      <path d="M 230 215 L 20 215 L 20 820 L 370 820" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" />
+      <!-- Mass sang NRF Trái (Chân 1) -->
+      <path d="M 20 440 L 105 440 L 105 460" fill="none" stroke="#000000" stroke-width="3.5" stroke-linecap="round" />
+      <!-- Mass sang NRF Phải (Chân 1) -->
+      <path d="M 475 215 L 970 215 L 970 440 L 855 440 L 855 460" fill="none" stroke="#000000" stroke-width="3.5" stroke-linecap="round" />
+
+      <!-- [D] ĐƯỜNG 3.3V SẠCH TỪ AMS1117 (MÀU ĐỎ RỰC) -->
+      <!-- AMS1117 VOUT -> Cấp Chân 2 NRF Trái -->
+      <path d="M 515 320 L 515 390 L 145 390 L 145 460" fill="none" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round" />
+      <!-- AMS1117 VOUT -> Cấp Chân 2 NRF Phải -->
+      <path d="M 515 390 L 895 390 L 895 460" fill="none" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round" />
+
+      <!-- [E] ĐƯỜNG TÍN HIỆU SPI CHUNG (SCK, MOSI, MISO) -->
+      <!-- 1. SCK (GPIO 12 - MÀU VÀNG) -->
+      <path d="M 370 660 L 320 660 L 320 1020 L 105 1020 L 105 560" fill="none" stroke="#eab308" stroke-width="3" stroke-linecap="round" />
+      <path d="M 320 1020 L 750 1020 L 750 560 L 855 560" fill="none" stroke="#eab308" stroke-width="3" stroke-linecap="round" />
+      <circle cx="320" cy="1020" r="4" fill="#eab308" />
+
+      <!-- 2. MOSI (GPIO 11 - MÀU XANH LÁ) -->
+      <path d="M 370 620 L 300 620 L 300 1040 L 145 1040 L 145 560" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" />
+      <path d="M 300 1040 L 770 1040 L 770 560 L 895 560" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" />
+      <circle cx="300" cy="1040" r="4" fill="#22c55e" />
+
+      <!-- 3. MISO (GPIO 13 - MÀU TÍM) -->
+      <path d="M 370 700 L 280 700 L 280 1060 L 105 1060 L 105 580" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round" />
+      <path d="M 280 1060 L 790 1060 L 790 580 L 855 580" fill="none" stroke="#a855f7" stroke-width="3" stroke-linecap="round" />
+      <circle cx="280" cy="1060" r="4" fill="#a855f7" />
+
+      <!-- [F] ĐƯỜNG TÍN HIỆU RIÊNG TỪNG MODULE (CE, CSN) -->
+      <!-- Module 1: CE (GPIO 9 - Cam) -->
+      <path d="M 370 330 L 240 330 L 240 520 L 105 520 L 105 500" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" />
+      <!-- Module 1: CSN (GPIO 10 - Xanh dương) -->
+      <path d="M 370 370 L 220 370 L 220 540 L 145 540 L 145 500" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" />
+
+      <!-- Module 2: CE (GPIO 21 - Xanh lục nhạt/Teal) -->
+      <path d="M 630 330 L 760 330 L 760 520 L 855 520 L 855 500" fill="none" stroke="#14b8a6" stroke-width="3" stroke-linecap="round" />
+      <!-- Module 2: CSN (GPIO 14 - Hồng) -->
+      <path d="M 630 370 L 780 370 L 780 540 L 895 540 L 895 500" fill="none" stroke="#ec4899" stroke-width="3" stroke-linecap="round" />
+
+      <!-- ========================================== -->
+      <!-- 7. BẢNG MÃ MÀU VÀ GHI CHÚ (FOOTER LEGEND)  -->
+      <!-- ========================================== -->
+      <g transform="translate(50, 1260)">
+        <rect width="900" height="150" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+        <text x="20" y="30" fill="#0f172a" font-weight="bold" font-size="14">BẢNG TRA CỨU MÀU DÂY THI CÔNG NHANH:</text>
+        
+        <!-- Cột 1 -->
+        <g transform="translate(20, 50)">
+          <line x1="0" y1="10" x2="30" y2="10" stroke="#dc2626" stroke-width="4" />
+          <text x="40" y="14" fill="#1e293b" font-size="12">🔴 <strong>3.3V (VCC):</strong> Ra từ AMS1117 -> Chân 2 NRF Trái & Phải</text>
+
+          <line x1="0" y1="35" x2="30" y2="35" stroke="#000000" stroke-width="4" />
+          <text x="40" y="39" fill="#1e293b" font-size="12">⚫ <strong>GND (Mass):</strong> Nối chung TP4056, AMS1117, ESP32, 2x NRF</text>
+
+          <line x1="0" y1="60" x2="30" y2="60" stroke="#eab308" stroke-width="4" />
+          <text x="40" y="64" fill="#1e293b" font-size="12">🟡 <strong>SCK (Clock):</strong> ESP32-S3 GPIO 12 -> Chân 5 NRF Trái & Phải</text>
+        </g>
+
+        <!-- Cột 2 -->
+        <g transform="translate(480, 50)">
+          <line x1="0" y1="10" x2="30" y2="10" stroke="#22c55e" stroke-width="4" />
+          <text x="40" y="14" fill="#1e293b" font-size="12">🟢 <strong>MOSI:</strong> ESP32-S3 GPIO 11 -> Chân 6 NRF Trái & Phải</text>
+
+          <line x1="0" y1="35" x2="30" y2="35" stroke="#a855f7" stroke-width="4" />
+          <text x="40" y="39" fill="#1e293b" font-size="12">🟣 <strong>MISO:</strong> ESP32-S3 GPIO 13 -> Chân 7 NRF Trái & Phải</text>
+
+          <line x1="0" y1="60" x2="30" y2="60" stroke="#f97316" stroke-width="4" />
+          <text x="40" y="64" fill="#1e293b" font-size="12">🟧 <strong>CE 1:</strong> GPIO 9 | 🟦 <strong>CSN 1:</strong> GPIO 10 (Module Trái)</text>
+
+          <line x1="0" y1="85" x2="30" y2="85" stroke="#14b8a6" stroke-width="4" />
+          <text x="40" y="89" fill="#1e293b" font-size="12">🩵 <strong>CE 2:</strong> GPIO 21 | 🌸 <strong>CSN 2:</strong> GPIO 14 (Module Phải)</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="window.print()">In hoặc Lưu PDF Sơ Đồ</button>
+  </div>
+
+</body>
+</html>
