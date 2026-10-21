@@ -4,9 +4,7 @@ import {
   Cpu,
   HardDrive,
   Zap,
-  Server,
   Activity,
-  CheckCircle2,
   Clock,
   Trash2,
   Pause,
@@ -140,15 +138,6 @@ export default function SshMonitorCenter() {
     ? 'bg-zinc-950/80 border border-zinc-800/80'
     : 'bg-slate-50 border border-slate-200';
 
-  const toolLabels = {
-    docker: { name: '🐳 Docker Engine', desc: 'Container Runtime' },
-    compose: { name: '🐙 Docker Compose', desc: 'Multi-container' },
-    nginx: { name: '🌐 Nginx Server', desc: 'Reverse Proxy & Security' },
-    node: { name: '🟢 Node.js LTS', desc: 'JavaScript Runtime' },
-    vscode: { name: '💻 VS Code', desc: 'Code Editor' },
-    ssh: { name: '🔐 OpenSSH', desc: 'Remote Control Port 22' },
-  };
-
   return (
     <div className="w-full max-w-7xl space-y-4 sm:space-y-5 pb-8">
       {/* 1. Banner Trạng thái kết nối & Chuyển đổi chế độ Màn hình Ubuntu / Terminal SSH */}
@@ -160,7 +149,7 @@ export default function SshMonitorCenter() {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-base sm:text-lg font-bold tracking-tight">
-                Trung Tâm Điều Khiển Màn Hình Ubuntu & SSH (Headless Mini PC)
+                Trung Tâm Điều Khiển
               </h2>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
@@ -168,7 +157,7 @@ export default function SshMonitorCenter() {
               </span>
             </div>
             <p className={`text-xs sm:text-sm mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Máy chủ: <span className="font-semibold text-indigo-400">{stats?.hostname || 'owl189'}</span> (HP Z2 Mini G3 • Xeon E3-1245 v5 • 16GB RAM) — Hoạt động độc lập không cần cắm màn hình rời
+              Máy chủ: <span className="font-semibold text-indigo-400">{stats?.hostname || 'owl189'}</span> (HP Z2 Mini G3 • Xeon E3-1245 v5 • 16GB RAM)
             </p>
           </div>
         </div>
@@ -332,10 +321,7 @@ export default function SshMonitorCenter() {
             <div className="flex items-center gap-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-xs sm:text-sm font-bold uppercase tracking-wide text-indigo-400">
-                🖥️ Màn Hình Desktop Ubuntu 24.04 Trực Tiếp (Click chuột & Gõ phím ngay trên Web)
-              </span>
-              <span className="hidden md:inline-block text-[11px] text-zinc-400">
-                • Tự động chạy ngầm 24/7 kể cả khi rút dây màn hình khỏi Mini PC
+                🖥️ Màn Hình Desktop Ubuntu
               </span>
             </div>
 
@@ -389,7 +375,7 @@ export default function SshMonitorCenter() {
               <div className="flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-emerald-400" />
                 <span className="text-xs sm:text-sm font-bold uppercase tracking-wide text-emerald-400">
-                  Màn hình Đồng bộ Terminal SSH Trực Tiếp (Live PTY Mirror)
+                  Màn hình Đồng bộ Terminal SSH Trực Tiếp
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -463,7 +449,7 @@ export default function SshMonitorCenter() {
           </div>
         </div>
 
-        {/* Cột phải (5/12): Nhật ký Thao tác từ Máy Win + Trạng thái 6 Công cụ Server */}
+        {/* Cột phải (5/12): Nhật ký Thao tác từ Máy Win */}
         <div className="lg:col-span-5 flex flex-col gap-4">
           {/* Nhật ký Thao tác từ Máy Win & Lệnh Thực thi */}
           <div className={`rounded-2xl p-4 backdrop-blur-xl flex flex-col h-[420px] ${cardClass}`}>
@@ -504,41 +490,6 @@ export default function SshMonitorCenter() {
                   Đang chờ thao tác điều khiển mới từ máy Windows...
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Trạng thái Công cụ Server */}
-          <div className={`rounded-2xl p-4 backdrop-blur-xl ${cardClass}`}>
-            <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-zinc-800/80">
-              <span className="text-xs sm:text-sm font-bold uppercase tracking-wide text-indigo-400 flex items-center gap-2">
-                <Server className="w-4 h-4" /> Bộ Công Cụ Chuẩn Server
-              </span>
-              <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Sẵn sàng 100%
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5">
-              {Object.entries(toolLabels).map(([key, meta]) => {
-                const info = stats?.tools?.[key];
-                const ok = info?.installed;
-                return (
-                  <div key={key} className={`p-2.5 rounded-xl ${subCardClass}`}>
-                    <div className="flex items-center justify-between text-xs font-bold mb-1">
-                      <span>{meta.name}</span>
-                      <span className={ok ? 'text-emerald-400' : 'text-amber-400'}>
-                        {ok ? '✔ ON' : '...'}
-                      </span>
-                    </div>
-                    <div
-                      className="text-[10px] text-zinc-400 truncate font-mono"
-                      title={info?.version || meta.desc}
-                    >
-                      {info?.version || meta.desc}
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>
