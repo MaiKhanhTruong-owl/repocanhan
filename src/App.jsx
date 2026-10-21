@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Sidebar from './components/Sidebar';
-import AuthTester from './components/AuthTester';
 import PrinterMonitor from './components/PrinterMonitor';
 import PrintHistory from './components/PrintHistory';
 import SmartHomeCard from './components/SmartHomeCard';
 import BonjourrBackground from './components/BonjourrBackground';
 import BonjourrSettings from './components/BonjourrSettings';
 import { loadBonjourrConfig, saveBonjourrConfig } from './utils/bonjourrConfig';
-import { Home, Sparkles, CheckCircle2, Sun, Moon, History, Zap, Palette } from 'lucide-react';
+import { Home, Sun, Moon, History, Zap, Palette } from 'lucide-react';
 
 function Dashboard() {
-  const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [activeNav, setActiveNavState] = useState(() => {
     return localStorage.getItem('printflow_active_nav') || 'home';
@@ -113,32 +111,8 @@ function Dashboard() {
             )}
           </div>
 
-          {/* Góc bên phải header: Trạng thái User & Nút Sáng/Tối */}
+          {/* Góc bên phải header: Nút Sáng/Tối */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* User status badge */}
-            <div
-              className={`flex items-center gap-1.5 sm:gap-2 text-xs px-2.5 sm:px-3 py-1.5 rounded-xl border transition-colors ${
-                isDark
-                  ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300'
-                  : 'bg-slate-100 border-slate-300 text-slate-700 font-medium'
-              }`}
-            >
-              {user?.picture ? (
-                <img
-                  src={user.picture}
-                  alt={user.username}
-                  className="w-4 h-4 rounded-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              )}
-              <span className={`hidden sm:inline ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>Tài khoản:</span>
-              <span className={isDark ? 'text-emerald-400 font-bold' : 'text-emerald-600 font-bold'}>
-                {user?.username}
-              </span>
-            </div>
-
             {/* NÚT CHẾ ĐỘ SÁNG / TỐI */}
             <button
               onClick={toggleTheme}
@@ -181,22 +155,12 @@ function Dashboard() {
   );
 }
 
-function MainApp() {
-  const { user } = useAuth();
-
-  if (!user) {
-    return <AuthTester />;
-  }
-
-  return <Dashboard />;
-}
-
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
         <AppProvider>
-          <MainApp />
+          <Dashboard />
         </AppProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -1,10 +1,8 @@
 import React from 'react';
-import { Home, Box, LogOut, User, History, Zap, Palette } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { Home, Box, History, Zap, Palette } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Sidebar({ activeNav = 'home', onSelectNav }) {
-  const { user, signOut } = useAuth();
   const { theme } = useTheme();
 
   const isDark = theme === 'dark';
@@ -128,70 +126,6 @@ export default function Sidebar({ activeNav = 'home', onSelectNav }) {
           </span>
         </button>
       </nav>
-
-      {/* 3. Phần tài khoản & Đăng xuất ở dưới cùng Sidebar */}
-      <div
-        className={`flex flex-col items-center gap-2.5 sm:gap-3 pt-3 sm:pt-4 border-t w-full px-1.5 sm:px-2 transition-colors ${
-          isDark ? 'border-zinc-800' : 'border-slate-300'
-        }`}
-      >
-        {/* User avatar indicator */}
-        <div
-          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center relative group cursor-default transition-colors overflow-hidden ${
-            isDark
-              ? 'bg-zinc-800 border-zinc-700 text-emerald-400'
-              : 'bg-white border-slate-300 text-emerald-600 shadow-xs'
-          }`}
-          title={`Đang đăng nhập: ${user?.username || 'admin'}`}
-        >
-          {user?.picture ? (
-            <img
-              src={user.picture}
-              alt={user.username}
-              className="w-full h-full object-cover rounded-xl"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <User className="w-4 h-4 sm:w-5 sm:h-5" />
-          )}
-          <span
-            className={`w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-400 ring-2 absolute -top-0.5 -right-0.5 ${
-              isDark ? 'ring-zinc-900' : 'ring-white'
-            }`}
-          />
-
-          {/* Tooltip hiển thị tên */}
-          <span
-            className={`absolute left-full ml-3 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity shadow-xl z-50 ${
-              isDark
-                ? 'bg-zinc-800 text-emerald-400 border border-zinc-700'
-                : 'bg-slate-800 text-emerald-300 shadow-md'
-            }`}
-          >
-            {user?.username || 'admin'} (Online)
-          </span>
-        </div>
-
-        {/* Nút đăng xuất */}
-        <button
-          onClick={() => signOut()}
-          className={`group relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-colors ${
-            isDark
-              ? 'text-zinc-500 hover:text-rose-400 hover:bg-zinc-800'
-              : 'text-slate-500 hover:text-rose-600 hover:bg-rose-50'
-          }`}
-          title="Đăng xuất"
-        >
-          <LogOut className="w-4 h-4" />
-          <span
-            className={`absolute left-full ml-3 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity shadow-xl z-50 ${
-              isDark ? 'bg-zinc-800 text-rose-300 border border-zinc-700' : 'bg-slate-800 text-rose-300 shadow-md'
-            }`}
-          >
-            Đăng xuất
-          </span>
-        </button>
-      </div>
     </aside>
   );
 }
