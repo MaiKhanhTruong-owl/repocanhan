@@ -12,6 +12,10 @@ import {
   Pause,
   Play,
   Monitor,
+  Maximize2,
+  Minimize2,
+  ExternalLink,
+  RefreshCw,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
@@ -36,9 +40,36 @@ export default function SshMonitorCenter() {
   const [autoScroll, setAutoScroll] = useState(true);
   const [error, setError] = useState(null);
 
+  // Chế độ hiển thị: 'desktop' (Chiếu màn hình Ubuntu điều khiển trực tiếp) hoặc 'ssh' (Terminal SSH)
+  const [viewMode, setViewMode] = useState('desktop');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [vncKey, setVncKey] = useState(1);
+
   const lastSeqRef = useRef(0);
   const termBoxRef = useRef(null);
   const eventsBoxRef = useRef(null);
+  const desktopContainerRef = useRef(null);
+
+  const vncUrl = '/novnc/vnc.html?autoconnect=true&resize=scale&reconnect=true&reconnect_delay=2000&path=websockify';
+
+  const toggleFullscreen = () => {
+    if (!desktopContainerRef.current) return;
+    if (!document.fullscreenElement) {
+      desktopContainerRef.current.requestFullscreen?.().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const onFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -120,7 +151,7 @@ export default function SshMonitorCenter() {
 
   return (
     <div className="w-full max-w-7xl space-y-4 sm:space-y-5 pb-8">
-      {/* 1. Banner Trạng thái kết nối SSH thời gian thực */}
+      {/* 1. Banner Trạng thái kết nối & Chuyển đổi chế độ Màn hình Ubuntu / Terminal SSH */}
       <div className={`rounded-2xl p-4 sm:p-5 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 ${cardClass}`}>
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
@@ -129,32 +160,49 @@ export default function SshMonitorCenter() {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-base sm:text-lg font-bold tracking-tight">
-                Trung Tâm Giám Sát Điều Khiển SSH Trực Tiếp (Win ➔ Ubuntu)
+                Trung Tâm Điều Khiển Màn Hình Ubuntu & SSH (Headless Mini PC)
               </h2>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                LIVE REAL-TIME
+                HEADLESS READY
               </span>
             </div>
             <p className={`text-xs sm:text-sm mt-0.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>
-              Máy chủ: <span className="font-semibold text-indigo-400">{stats?.hostname || 'owl189'}</span> (HP Z2 Mini G3 • Intel Xeon E3-1245 v5 • 16GB RAM • Ubuntu 24.04 LTS)
+              Máy chủ: <span className="font-semibold text-indigo-400">{stats?.hostname || 'owl189'}</span> (HP Z2 Mini G3 • Xeon E3-1245 v5 • 16GB RAM) — Hoạt động độc lập không cần cắm màn hình rời
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <div
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
-              stats?.ssh_sessions?.length
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+        {/* Nút chuyển đổi giữa Màn hình Desktop Ubuntu (Chuột/Phím) và Giám sát SSH */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setViewMode('desktop')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border ${
+              viewMode === 'desktop'
+                ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
+                : isDark
+                ? 'bg-zinc-800/80 text-zinc-300 border-zinc-700 hover:bg-zinc-800'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-current" />
-            {stats?.ssh_sessions?.length
-              ? `Đang kết nối SSH: ${stats.ssh_sessions.join(' | ')}`
-              : 'Chờ phiên kết nối SSH từ Windows'}
-          </div>
+            <Monitor className="w-4 h-4" />
+            <span>🖥️ Màn Hình Ubuntu Trực Tiếp (Chuột & Phím)</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('ssh')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border ${
+              viewMode === 'ssh'
+                ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
+                : isDark
+                ? 'bg-zinc-800/80 text-zinc-300 border-zinc-700 hover:bg-zinc-800'
+                : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+            }`}
+          >
+            <Terminal className="w-4 h-4" />
+            <span>📺 Giám Sát Lệnh SSH & Nhật Ký</span>
+          </button>
+
           {stats?.time && (
             <div className={`px-3 py-2 rounded-xl text-xs font-mono flex items-center gap-1.5 ${subCardClass}`}>
               <Clock className="w-3.5 h-3.5 text-indigo-400" />
@@ -272,11 +320,71 @@ export default function SshMonitorCenter() {
         </div>
       </div>
 
-      {/* 3. Khu vực chính: Terminal Mirror + Luồng thao tác từ máy Win */}
+      {/* 3A. CHẾ ĐỘ CHIẾU MÀN HÌNH DESKTOP UBUNTU TRỰC TIẾP (noVNC Headless Desktop) */}
+      {viewMode === 'desktop' && (
+        <div
+          ref={desktopContainerRef}
+          className={`rounded-2xl p-3 sm:p-4 backdrop-blur-xl flex flex-col ${
+            isFullscreen ? 'w-screen h-screen bg-zinc-950 fixed inset-0 z-50 rounded-none' : `h-[680px] ${cardClass}`
+          }`}
+        >
+          <div className="flex items-center justify-between pb-3 mb-2 border-b border-zinc-800/80 flex-wrap gap-2">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wide text-indigo-400">
+                🖥️ Màn Hình Desktop Ubuntu 24.04 Trực Tiếp (Click chuột & Gõ phím ngay trên Web)
+              </span>
+              <span className="hidden md:inline-block text-[11px] text-zinc-400">
+                • Tự động chạy ngầm 24/7 kể cả khi rút dây màn hình khỏi Mini PC
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setVncKey((k) => k + 1)}
+                className="px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 cursor-pointer"
+                title="Kết nối lại màn hình"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Tải lại</span>
+              </button>
+              <a
+                href={vncUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 text-cyan-300 border border-zinc-700"
+                title="Mở màn hình Ubuntu trong Tab riêng"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Mở Tab Riêng</span>
+              </a>
+              <button
+                onClick={toggleFullscreen}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm cursor-pointer"
+              >
+                {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                <span>{isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full bg-black rounded-xl overflow-hidden border border-zinc-800 relative">
+            <iframe
+              key={vncKey}
+              src={vncUrl}
+              title="Ubuntu Live Remote Desktop"
+              className="w-full h-full border-0"
+              allow="clipboard-read; clipboard-write; fullscreen"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 3B. CHẾ ĐỘ GIÁM SÁT TERMINAL SSH & TIẾN TRÌNH */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Cột trái (7/12): Màn hình Đồng bộ Terminal SSH Trực Tiếp + Tiến trình SSH */}
         <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className={`rounded-2xl p-4 backdrop-blur-xl flex flex-col h-[460px] ${cardClass}`}>
+          <div className={`rounded-2xl p-4 backdrop-blur-xl flex flex-col h-[420px] ${cardClass}`}>
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-800/80">
               <div className="flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-emerald-400" />
@@ -358,7 +466,7 @@ export default function SshMonitorCenter() {
         {/* Cột phải (5/12): Nhật ký Thao tác từ Máy Win + Trạng thái 6 Công cụ Server */}
         <div className="lg:col-span-5 flex flex-col gap-4">
           {/* Nhật ký Thao tác từ Máy Win & Lệnh Thực thi */}
-          <div className={`rounded-2xl p-4 backdrop-blur-xl flex flex-col h-[460px] ${cardClass}`}>
+          <div className={`rounded-2xl p-4 backdrop-blur-xl flex flex-col h-[420px] ${cardClass}`}>
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-800/80">
               <span className="text-xs sm:text-sm font-bold uppercase tracking-wide text-amber-400 flex items-center gap-2">
                 <Terminal className="w-4 h-4" /> Nhật ký Thao tác từ Máy Win & Lệnh Thực thi
