@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Box, History, Zap, Palette } from 'lucide-react';
+import { Home, Box, History, Zap, Palette, Terminal } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Sidebar({ activeNav = 'home', onSelectNav }) {
@@ -99,6 +99,30 @@ export default function Sidebar({ activeNav = 'home', onSelectNav }) {
             }`}
           >
             Lịch sử in & Thành phẩm
+          </span>
+        </button>
+
+        {/* Nút Trung tâm Giám sát SSH & Server Ubuntu */}
+        <button
+          onClick={() => onSelectNav && onSelectNav('sshmonitor')}
+          className={`group relative w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
+            activeNav === 'sshmonitor'
+              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-2 ring-indigo-400/30'
+              : isDark
+              ? 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200 border border-transparent hover:border-slate-300'
+          }`}
+          title="Trung tâm Giám sát Điều khiển SSH"
+        >
+          <Terminal className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:scale-110" />
+
+          {/* Tooltip khi hover */}
+          <span
+            className={`absolute left-full ml-3 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity shadow-xl z-50 ${
+              isDark ? 'bg-zinc-800 text-zinc-100 border border-zinc-700' : 'bg-slate-800 text-white shadow-md'
+            }`}
+          >
+            Trung tâm Giám sát SSH (Server)
           </span>
         </button>
 

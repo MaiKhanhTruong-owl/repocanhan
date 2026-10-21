@@ -8,12 +8,15 @@ import PrintHistory from './components/PrintHistory';
 import SmartHomeCard from './components/SmartHomeCard';
 import BonjourrBackground from './components/BonjourrBackground';
 import BonjourrSettings from './components/BonjourrSettings';
+import SshMonitorCenter from './components/SshMonitorCenter';
 import { loadBonjourrConfig, saveBonjourrConfig } from './utils/bonjourrConfig';
-import { Home, Sun, Moon, History, Zap, Palette } from 'lucide-react';
+import { Home, Sun, Moon, History, Zap, Palette, Terminal } from 'lucide-react';
 
 function Dashboard() {
   const { theme, toggleTheme } = useTheme();
   const [activeNav, setActiveNavState] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'sshmonitor') return 'sshmonitor';
     return localStorage.getItem('printflow_active_nav') || 'home';
   });
 
@@ -101,6 +104,14 @@ function Dashboard() {
                 </h1>
               </>
             )}
+            {activeNav === 'sshmonitor' && (
+              <>
+                <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
+                <h1 className={`text-sm sm:text-base font-bold tracking-tight truncate ${isDark ? 'text-zinc-100' : 'text-slate-900'}`}>
+                  Trung Tâm Giám Sát Điều Khiển SSH • Server Ubuntu
+                </h1>
+              </>
+            )}
             {activeNav === 'settings' && (
               <>
                 <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 shrink-0" />
@@ -142,6 +153,7 @@ function Dashboard() {
             </div>
           )}
           {activeNav === 'history' && <PrintHistory />}
+          {activeNav === 'sshmonitor' && <SshMonitorCenter />}
           {activeNav === 'settings' && (
             <BonjourrSettings
               config={bonjourrConfig}

@@ -1574,6 +1574,24 @@ export function bambuVitePlugin() {
           return;
         }
 
+        // 28. TRUNG TÂM GIÁM SÁT ĐIỀU KHIỂN SSH & SERVER UBUNTU
+        if (url === '/api/ssh-monitor' && req.method === 'GET') {
+          try {
+            const since = fullUrl.searchParams.get('since') || '0';
+            const resp = await fetch(`http://127.0.0.1:8888/api/status?since=${encodeURIComponent(since)}`);
+            const data = await resp.text();
+            res.statusCode = resp.status;
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-store');
+            res.end(data);
+          } catch (e) {
+            res.statusCode = 503;
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ error: 'SSH Monitor unavailable', details: e.message }));
+          }
+          return;
+        }
+
         next();
       });
     },
